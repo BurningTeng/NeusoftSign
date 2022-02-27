@@ -207,8 +207,6 @@ namespace SignSystem
                 Thread.Sleep(1000);
                 string alert;
 
-         
-         
                 try
                 {
                     alert = wd.FindElement(By.ClassName("ui-slider-text")).Text;
