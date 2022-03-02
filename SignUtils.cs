@@ -9,10 +9,16 @@ using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net;
+using Titanium.Web.Proxy;
+using Titanium.Web.Proxy.EventArguments;
+using Titanium.Web.Proxy.Http;
+using Titanium.Web.Proxy.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SignSystem
 {
@@ -33,7 +39,36 @@ namespace SignSystem
                 Cv2.WaitKey();
             }
         }
-        
+
+        public static int Match(string template, string target)
+        {
+            //模板图片
+            Mat temp = new Mat(template, ImreadModes.AnyColor);
+            //被匹配图
+            Mat wafer = new Mat(target, ImreadModes.AnyColor);
+
+            //Canny边缘检测
+            //Canny边缘检测
+            Mat temp_canny_Image = new Mat();
+            Cv2.Canny(temp, temp_canny_Image, 100, 200);
+            Mat wafer_canny_Image = new Mat();
+            Cv2.Canny(wafer, wafer_canny_Image, 100, 200);
+
+
+            //匹配结果
+            Mat result = new Mat();
+            //模板匹配
+            Cv2.MatchTemplate(wafer_canny_Image, temp_canny_Image, result, TemplateMatchModes.CCoeffNormed);//最好匹配为1,值越小匹配越差
+            //数组位置下x,y
+            Point minLoc = new Point(0, 0);
+            Point maxLoc = new Point(0, 0);
+            Point matchLoc = new Point(0, 0);
+            Cv2.MinMaxLoc(result, out minLoc, out maxLoc);
+            matchLoc = maxLoc;
+
+            return matchLoc.X + 15;
+        }
+
         public static void SendMail(string content)
         {
             MailMessage message = new MailMessage();
@@ -50,7 +85,7 @@ namespace SignSystem
             //设置邮件内容
             message.Body = content;
 
-            string file = CaptureScreen();
+/*            string file = CaptureScreen();
             Attachment data = new Attachment(file, MediaTypeNames.Application.Octet);
             // Add time stamp information for the file.
             ContentDisposition disposition = data.ContentDisposition;
@@ -58,7 +93,7 @@ namespace SignSystem
             disposition.ModificationDate = System.IO.File.GetLastWriteTime(file);
             disposition.ReadDate = System.IO.File.GetLastAccessTime(file);
             // Add the file attachment to this email message.
-            message.Attachments.Add(data);
+            message.Attachments.Add(data);*/
 
             //设置邮件发送服务器,服务器根据你使用的邮箱而不同,可以到相应的 邮箱管理后台查看
             SmtpClient client = new SmtpClient("smtp.qq.com", 25);
@@ -73,7 +108,7 @@ namespace SignSystem
             Console.WriteLine("打卡成功" + DateTime.Now);
         }
 
-        public static string CaptureScreen()
+       /* public static string CaptureScreen()
         {
             var img = CaptureWindow(User32.GetDesktopWindow());
             const string V = @"D:\books\";
@@ -124,7 +159,7 @@ namespace SignSystem
             // free up the Bitmap object
             GDI32.DeleteObject(hBitmap);
             return img;
-        }
+        }*/
 
 
 
@@ -179,10 +214,8 @@ namespace SignSystem
         }
 
 
-        public static void Sign()
+        public void Sign()
         {
-            Console.WriteLine("Hello World!");
-
             IWebDriver wd = new ChromeDriver();
             wd.Navigate().GoToUrl("http://kq.neusoft.com/");
             IWindow window = wd.Manage().Window;
@@ -190,20 +223,20 @@ namespace SignSystem
             Thread.Sleep(3000);
             wd.FindElement(By.ClassName("userName")).SendKeys("tengyb");
             wd.FindElement(By.ClassName("password")).SendKeys("18345093167ASdgy123");
-            int distance = 85;
-            Random random = new ();
-            int minoffset = 20;
-            int maxoffset = 85;
-
+            int distance = 0;
             while (true)
             {
-
+                Monitor.Enter(this);
+                distance = Match("D:\\test_png\\template.png", "D:\\test_png\\target.png");
+                //  distance = Match(AppDomain.CurrentDomain.BaseDirectory + "\\images\\template.png", AppDomain.CurrentDomain.BaseDirectory + "\\images\\target.pmg");
+                Monitor.Exit(this);
+                Console.WriteLine("匹配检测出的距离是:" + distance);
                 //这是滑块
                 var slide = wd.FindElement(By.ClassName("ui-slider-btn"));
                 Actions action = new (wd);
                 //点击并按住滑块元素
                 action.ClickAndHold(slide);
-                action.MoveByOffset(distance*2, 0);
+                action.MoveByOffset(distance, 0);
                 Thread.Sleep(1000);
                 string alert;
 
@@ -222,14 +255,14 @@ namespace SignSystem
                 if (alert.Contains("验证成功"))
                 {
                     Console.WriteLine("滑块验证成功!");
-                    Console.WriteLine("移动的距离是:" + distance * 2);
+                    Console.WriteLine("移动的距离是:" + distance);
                     break;
                 }
                 else
                 {
                     Console.WriteLine("滑块验证失败!");
+                    
                     action.Release().Perform();
-                    distance = random.Next(minoffset, maxoffset);
                     Thread.Sleep(1000);
                     wd.SwitchTo().DefaultContent();
                 }
@@ -253,5 +286,242 @@ namespace SignSystem
             wd.Quit();
         }
 
+
+        private ProxyServer proxyServer = new ProxyServer();
+
+        public string? target { get; set; }
+        public string? template { get; set; }
+
+        // locally trust root certificate used by this proxy 
+        //proxyServer.CertificateManager.TrustRootCertificate(true);
+
+        // optionally set the Certificate Engine
+        // Under Mono only BouncyCastle will be supported
+        //proxyServer.CertificateManager.CertificateEngine = Network.CertificateEngine.BouncyCastle;
+        public void StartProxyServer()
+        {
+            proxyServer.BeforeRequest += OnRequest;
+            proxyServer.BeforeResponse += OnResponse;
+            proxyServer.ServerCertificateValidationCallback += OnCertificateValidation;
+            proxyServer.ClientCertificateSelectionCallback += OnCertificateSelection;
+
+
+        }
+
+
+        public void SetProxyPort()
+        {
+            var explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Any, 8000, true)
+            {
+                // Use self-issued generic certificate on all https requests
+                // Optimizes performance by not creating a certificate for each https-enabled domain
+                // Useful when certificate trust is not required by proxy clients
+                //GenericCertificate = new X509Certificate2(Path.Combine(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "genericcert.pfx"), "password")
+            };
+
+            // Fired when a CONNECT request is received
+            //explicitEndPoint.BeforeTunnelConnect += OnBeforeTunnelConnect;
+
+            // An explicit endpoint is where the client knows about the existence of a proxy
+            // So client sends request in a proxy friendly manner
+            proxyServer.AddEndPoint(explicitEndPoint);
+            proxyServer.Start();
+
+            //proxyServer.UpStreamHttpProxy = new ExternalProxy() { HostName = "localhost", Port = 8888 };
+            //proxyServer.UpStreamHttpsProxy = new ExternalProxy() { HostName = "localhost", Port = 8888 };
+            foreach (var endPoint in proxyServer.ProxyEndPoints)
+                Console.WriteLine("Listening on '{0}' endpoint at Ip {1} and port: {2} ",
+                    endPoint.GetType().Name, endPoint.IpAddress, endPoint.Port);
+
+            // Only explicit proxies can be set as system proxy!
+            proxyServer.SetAsSystemHttpProxy(explicitEndPoint);
+            proxyServer.SetAsSystemHttpsProxy(explicitEndPoint);
+
+        }
+
+        public void StopProxyServer()
+        {
+
+            // Unsubscribe & Quit
+            //explicitEndPoint.BeforeTunnelConnect -= OnBeforeTunnelConnect;
+            proxyServer.BeforeRequest -= OnRequest;
+            proxyServer.BeforeResponse -= OnResponse;
+            proxyServer.ServerCertificateValidationCallback -= OnCertificateValidation;
+            proxyServer.ClientCertificateSelectionCallback -= OnCertificateSelection;
+
+            proxyServer.Stop();
+
+        }
+
+        private async Task OnBeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
+        {
+            string hostname = e.HttpClient.Request.RequestUri.Host;
+
+            if (hostname.Contains("dropbox.com"))
+            {
+                // Exclude Https addresses you don't want to proxy
+                // Useful for clients that use certificate pinning
+                // for example dropbox.com
+                e.DecryptSsl = false;
+            }
+        }
+
+        private async Task OnRequest(object sender, SessionEventArgs e)
+        {
+            if (e.HttpClient.Request.RequestUri.AbsoluteUri.Contains("neusoft.com"))
+            {
+                Console.WriteLine(e.HttpClient.Request.Url);
+            }
+
+            // read request headers
+            var requestHeaders = e.HttpClient.Request.Headers;
+
+            var method = e.HttpClient.Request.Method.ToUpper();
+            if ((method == "POST" || method == "PUT" || method == "PATCH"))
+            {
+                if (e.HttpClient.Request.RequestUri.AbsoluteUri.Contains("jigsawVerify"))
+                {
+                    await Task.Delay(400);
+                    Console.WriteLine("try get image");
+
+                }
+                // Get/Set request body bytes
+                byte[] bodyBytes = await e.GetRequestBody();
+                e.SetRequestBody(bodyBytes);
+
+                // Get/Set request body as string
+                string bodyString = await e.GetRequestBodyAsString();
+                e.SetRequestBodyString(bodyString);
+
+                // store request 
+                // so that you can find it from response handler 
+                e.UserData = e.HttpClient.Request;
+            }
+
+            // To cancel a request with a custom HTML content
+            // Filter URL
+            if (e.HttpClient.Request.RequestUri.AbsoluteUri.Contains("360"))
+            {
+                e.Ok("<!DOCTYPE html>" +
+                    "<html><body><h1>" +
+                    "Website Blocked" +
+                    "</h1>" +
+                    "<p>Blocked by titanium web proxy.</p>" +
+                    "</body>" +
+                    "</html>");
+            }
+
+            // Redirect example
+            if (e.HttpClient.Request.RequestUri.AbsoluteUri.Contains("wikipedia.org"))
+            {
+                e.Redirect("https://www.paypal.com");
+            }
+        }
+
+        // Modify response
+        private async Task OnResponse(object sender, SessionEventArgs e)
+        {
+
+            // Console.WriteLine(e.HttpClient.Response.ToString());
+
+            // read response headers
+            var responseHeaders = e.HttpClient.Response.Headers;
+
+            //if (!e.ProxySession.Request.Host.Equals("medeczane.sgk.gov.tr")) return;
+            if (e.HttpClient.Request.Method == "GET" || e.HttpClient.Request.Method == "POST")
+            {
+
+                if (e.HttpClient.Response.StatusCode == 200)
+                {
+                    string stringResponse = await e.GetResponseBodyAsString();
+                    Console.WriteLine(e.HttpClient.Request.RequestUri.AbsoluteUri);
+                    if ("http://kq.neusoft.com/jigsaw".Equals(e.HttpClient.Request.Url))
+                    {
+                        SaveImage(stringResponse).Wait();
+                        // Console.WriteLine("finish download");
+
+                    }
+                    /* if (e.HttpClient.Response.ContentType != null && e.HttpClient.Response.ContentType.Trim().ToLower().Contains("text/html"))
+                     {
+                         byte[] bodyBytes = await e.GetResponseBody();
+                         e.SetResponseBody(bodyBytes);
+
+                         string body = await e.GetResponseBodyAsString();
+                         e.SetResponseBodyString(body);
+                     }*/
+                }
+            }
+
+            if (e.UserData != null)
+            {
+                // access request from UserData property where we stored it in RequestHandler
+                var request = (Request)e.UserData;
+            }
+        }
+
+        private async Task SaveImage(String stringResponse)
+        {
+
+            JObject jo = (JObject)JsonConvert.DeserializeObject(stringResponse);
+            template = jo["smallImage"].ToString();
+            target = jo["bigImage"].ToString();
+            template = "http://kq.neusoft.com/upload/jigsawImg/" + template + ".png";
+            target = "http://kq.neusoft.com/upload/jigsawImg/" + target + ".png";
+
+            System.IO.FileStream fs;
+            /*
+                            var client = new HttpClient();
+                            byte[] urlContents = await client.GetByteArrayAsync(template);
+                            fs = new System.IO.FileStream(AppDomain.CurrentDomain.BaseDirectory + "\\images\\template.png", System.IO.FileMode.Create);
+                            fs.Write(urlContents, 0, urlContents.Length);
+
+                            urlContents = await client.GetByteArrayAsync(target);
+                            fs = new System.IO.FileStream(AppDomain.CurrentDomain.BaseDirectory + "\\images\\target.pmg", System.IO.FileMode.Create);
+                            fs.Write(urlContents, 0, urlContents.Length);
+
+                            fs.Close();*/
+            WebClient client = new WebClient();
+            Monitor.Enter(this);
+            /*          client.DownloadFile(target, "D:\test_png\target.png");
+                      client.DownloadFile(template, "D:\test_png\template.png");*/
+            client.DownloadFile(target, "D:\\test_png\\target.png");
+            client.DownloadFile(template, "D:\\test_png\\template.png");
+            Console.Write("Finish download image ");
+            Monitor.Exit(this);
+        }
+
+        public static async Task DownPic()
+        {
+            string imgSourceURL = "https://img.infinitynewtab.com/wallpaper/";
+            var client = new HttpClient();
+            System.IO.FileStream fs;
+            int a = 1;
+            //文件名：序号+.jpg。可指定范围，以下是获取100.jpg~500.jpg.
+            for (int i = 1; i <= 50; i++)
+            {
+                var uri = new Uri(Uri.EscapeUriString(imgSourceURL + i.ToString() + ".jpg"));
+                byte[] urlContents = await client.GetByteArrayAsync(uri);
+                fs = new System.IO.FileStream(AppDomain.CurrentDomain.BaseDirectory + "\\images\\" + i.ToString() + ".jpg", System.IO.FileMode.CreateNew);
+                fs.Write(urlContents, 0, urlContents.Length);
+                Console.WriteLine(a++);
+            }
+        }
+
+        // Allows overriding default certificate validation logic
+        private Task OnCertificateValidation(object sender, CertificateValidationEventArgs e)
+        {
+            // set IsValid to true/false based on Certificate Errors
+            if (e.SslPolicyErrors == System.Net.Security.SslPolicyErrors.None)
+                e.IsValid = true;
+
+            return Task.CompletedTask;
+        }
+
+        // Allows overriding default client certificate selection logic during mutual authentication
+        private Task OnCertificateSelection(object sender, CertificateSelectionEventArgs e)
+        {
+            // set e.clientCertificate to override
+            return Task.CompletedTask;
+        }
     }
 }
