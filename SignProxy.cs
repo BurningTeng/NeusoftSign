@@ -110,6 +110,12 @@ namespace SignSystem
             var method = e.HttpClient.Request.Method.ToUpper();
             if ((method == "POST" || method == "PUT" || method == "PATCH"))
             {
+                if (e.HttpClient.Request.RequestUri.AbsoluteUri.Contains("jigsawVerify"))
+                {
+                   // await SaveImage(stringResponse);
+                   Console.WriteLine("try get image");
+
+                }
                 // Get/Set request body bytes
                 byte[] bodyBytes = await e.GetRequestBody();
                 e.SetRequestBody(bodyBytes);
@@ -194,18 +200,13 @@ namespace SignSystem
                 target = jo["bigImage"].ToString();
                 template = "http://kq.neusoft.com/upload/jigsawImg/" + template + ".png";
                 target = "http://kq.neusoft.com/upload/jigsawImg/" + target + ".png";
-               // SignUtils.TestOpenCv(template);
- /*               WebClient wc = new();
+                WebClient wc = new();
 
                 await Task.Run(async () =>
                 {
-                    wc.DownloadFile(bigImage, "D:\\test_png\\big.png");
+                   wc.DownloadFile(target, "D:\\test_png\\target.png");
+                   wc.DownloadFile(template, "D:\\test_png\\template.png");
                 });
-
-                await Task.Run(async () =>
-                {
-                    wc.DownloadFile(smallImage, "D:\\test_png\\small.png");
-                });*/
 
             });
         }

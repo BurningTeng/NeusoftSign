@@ -9,7 +9,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,7 +32,46 @@ namespace SignSystem
                 Cv2.WaitKey();
             }
         }
-        
+
+        public static int Match(string template, string target)
+        {
+            //模板图片
+            Mat temp = new Mat(template, ImreadModes.AnyColor);
+            //被匹配图
+            Mat wafer = new Mat(target, ImreadModes.AnyColor);
+
+            //Canny边缘检测
+            //Canny边缘检测
+            Mat temp_canny_Image = new Mat();
+            Cv2.Canny(temp, temp_canny_Image, 100, 200);
+            Mat wafer_canny_Image = new Mat();
+            Cv2.Canny(wafer, wafer_canny_Image, 100, 200);
+
+
+            //匹配结果
+            Mat result = new Mat();
+            //模板匹配
+            Cv2.MatchTemplate(wafer_canny_Image, temp_canny_Image, result, TemplateMatchModes.CCoeffNormed);//最好匹配为1,值越小匹配越差
+            //数组位置下x,y
+            Point minLoc = new Point(0, 0);
+            Point maxLoc = new Point(0, 0);
+            Point matchLoc = new Point(0, 0);
+            Cv2.MinMaxLoc(result, out minLoc, out maxLoc);
+            matchLoc = maxLoc;
+           // Mat mask = wafer.Clone();
+            //画框显示
+           // Cv2.Rectangle(mask, matchLoc, new Point(matchLoc.X + temp.Cols, matchLoc.Y + temp.Rows), Scalar.Green, 2);
+
+            return matchLoc.X + 15;
+            //新建窗体显示图片
+   /*         using (new Window("temp image", temp))
+            using (new Window("wafer image", wafer))
+            using (new Window("mask image", mask))
+            {
+                Cv2.WaitKey();
+            }*/
+        }
+
         public static void SendMail(string content)
         {
             MailMessage message = new MailMessage();
@@ -50,7 +88,7 @@ namespace SignSystem
             //设置邮件内容
             message.Body = content;
 
-            string file = CaptureScreen();
+/*            string file = CaptureScreen();
             Attachment data = new Attachment(file, MediaTypeNames.Application.Octet);
             // Add time stamp information for the file.
             ContentDisposition disposition = data.ContentDisposition;
@@ -58,7 +96,7 @@ namespace SignSystem
             disposition.ModificationDate = System.IO.File.GetLastWriteTime(file);
             disposition.ReadDate = System.IO.File.GetLastAccessTime(file);
             // Add the file attachment to this email message.
-            message.Attachments.Add(data);
+            message.Attachments.Add(data);*/
 
             //设置邮件发送服务器,服务器根据你使用的邮箱而不同,可以到相应的 邮箱管理后台查看
             SmtpClient client = new SmtpClient("smtp.qq.com", 25);
@@ -73,7 +111,7 @@ namespace SignSystem
             Console.WriteLine("打卡成功" + DateTime.Now);
         }
 
-        public static string CaptureScreen()
+       /* public static string CaptureScreen()
         {
             var img = CaptureWindow(User32.GetDesktopWindow());
             const string V = @"D:\books\";
@@ -124,7 +162,7 @@ namespace SignSystem
             // free up the Bitmap object
             GDI32.DeleteObject(hBitmap);
             return img;
-        }
+        }*/
 
 
 
@@ -181,8 +219,6 @@ namespace SignSystem
 
         public static void Sign()
         {
-            Console.WriteLine("Hello World!");
-
             IWebDriver wd = new ChromeDriver();
             wd.Navigate().GoToUrl("http://kq.neusoft.com/");
             IWindow window = wd.Manage().Window;
@@ -190,20 +226,18 @@ namespace SignSystem
             Thread.Sleep(3000);
             wd.FindElement(By.ClassName("userName")).SendKeys("tengyb");
             wd.FindElement(By.ClassName("password")).SendKeys("18345093167ASdgy123");
-            int distance = 85;
-            Random random = new ();
-            int minoffset = 20;
-            int maxoffset = 85;
-
+            int distance = 0;
             while (true)
             {
 
+                distance = Match("D:\\test_png\\template.png", "D:\\test_png\\target.png");
+                Console.WriteLine("匹配检测出的距离是:" + distance);
                 //这是滑块
                 var slide = wd.FindElement(By.ClassName("ui-slider-btn"));
                 Actions action = new (wd);
                 //点击并按住滑块元素
                 action.ClickAndHold(slide);
-                action.MoveByOffset(distance*2, 0);
+                action.MoveByOffset(distance, 0);
                 Thread.Sleep(1000);
                 string alert;
 
@@ -222,14 +256,14 @@ namespace SignSystem
                 if (alert.Contains("验证成功"))
                 {
                     Console.WriteLine("滑块验证成功!");
-                    Console.WriteLine("移动的距离是:" + distance * 2);
+                    Console.WriteLine("移动的距离是:" + distance);
                     break;
                 }
                 else
                 {
                     Console.WriteLine("滑块验证失败!");
+                    
                     action.Release().Perform();
-                    distance = random.Next(minoffset, maxoffset);
                     Thread.Sleep(1000);
                     wd.SwitchTo().DefaultContent();
                 }
@@ -252,6 +286,5 @@ namespace SignSystem
             Thread.Sleep(3000);
             wd.Quit();
         }
-
     }
 }
