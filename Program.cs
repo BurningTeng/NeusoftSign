@@ -55,11 +55,11 @@ void SignFilter(object? source, ElapsedEventArgs e)
         su.StopProxyServer();
         Console.WriteLine("早上打卡结束");
     }
-    else if (DateTime.Now.Hour == 12 && DateTime.Now.Minute == 30)
+    else if (DateTime.Now.Hour == 19 && DateTime.Now.Minute == 00)
     {
         Console.WriteLine("晚上打卡: 当前进程号是:" + Process.GetCurrentProcess() + ", 线程号是:" + Thread.CurrentThread.ManagedThreadId);
 
-        //Thread.Sleep(random.Next(min, max) * 60 * 1000);
+        Thread.Sleep(random.Next(min, max) * 60 * 1000);
         su.StartProxyServer();
         su.SetProxyPort();
         var task = Task.Run(() =>
