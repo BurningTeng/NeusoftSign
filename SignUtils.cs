@@ -19,6 +19,7 @@ using Titanium.Web.Proxy.Http;
 using Titanium.Web.Proxy.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 
 namespace SignSystem
 {
@@ -226,9 +227,10 @@ namespace SignSystem
             int distance = 0;
             while (true)
             {
+                Console.WriteLine("Sign: 当前进程号是:" + Process.GetCurrentProcess() + ", 线程号是:" + Thread.CurrentThread.ManagedThreadId);
+
                 Monitor.Enter(this);
-                distance = Match("D:\\test_png\\template.png", "D:\\test_png\\target.png");
-                //  distance = Match(AppDomain.CurrentDomain.BaseDirectory + "\\images\\template.png", AppDomain.CurrentDomain.BaseDirectory + "\\images\\target.pmg");
+                distance = Match(AppDomain.CurrentDomain.BaseDirectory + "\\template.png", AppDomain.CurrentDomain.BaseDirectory + "\\target.png");
                 Monitor.Exit(this);
                 Console.WriteLine("匹配检测出的距离是:" + distance);
                 //这是滑块
@@ -304,10 +306,7 @@ namespace SignSystem
             proxyServer.BeforeResponse += OnResponse;
             proxyServer.ServerCertificateValidationCallback += OnCertificateValidation;
             proxyServer.ClientCertificateSelectionCallback += OnCertificateSelection;
-
-
         }
-
 
         public void SetProxyPort()
         {
@@ -336,12 +335,10 @@ namespace SignSystem
             // Only explicit proxies can be set as system proxy!
             proxyServer.SetAsSystemHttpProxy(explicitEndPoint);
             proxyServer.SetAsSystemHttpsProxy(explicitEndPoint);
-
         }
 
         public void StopProxyServer()
         {
-
             // Unsubscribe & Quit
             //explicitEndPoint.BeforeTunnelConnect -= OnBeforeTunnelConnect;
             proxyServer.BeforeRequest -= OnRequest;
@@ -350,7 +347,6 @@ namespace SignSystem
             proxyServer.ClientCertificateSelectionCallback -= OnCertificateSelection;
 
             proxyServer.Stop();
-
         }
 
         private async Task OnBeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
@@ -381,9 +377,7 @@ namespace SignSystem
             {
                 if (e.HttpClient.Request.RequestUri.AbsoluteUri.Contains("jigsawVerify"))
                 {
-                    await Task.Delay(400);
-                    Console.WriteLine("try get image");
-
+                    Console.WriteLine("OnRequest: 当前进程号是:" + Process.GetCurrentProcess() + ", 线程号是:"+  Thread.CurrentThread.ManagedThreadId);
                 }
                 // Get/Set request body bytes
                 byte[] bodyBytes = await e.GetRequestBody();
@@ -437,7 +431,8 @@ namespace SignSystem
                     Console.WriteLine(e.HttpClient.Request.RequestUri.AbsoluteUri);
                     if ("http://kq.neusoft.com/jigsaw".Equals(e.HttpClient.Request.Url))
                     {
-                        SaveImage(stringResponse).Wait();
+                        Console.WriteLine("OnResponse: 当前进程号是:" + Process.GetCurrentProcess() + ", 线程号是:" + Thread.CurrentThread.ManagedThreadId);
+                        SaveImage(stringResponse);
                         // Console.WriteLine("finish download");
 
                     }
@@ -459,7 +454,7 @@ namespace SignSystem
             }
         }
 
-        private async Task SaveImage(String stringResponse)
+        private void SaveImage(String stringResponse)
         {
 
             JObject jo = (JObject)JsonConvert.DeserializeObject(stringResponse);
@@ -468,7 +463,7 @@ namespace SignSystem
             template = "http://kq.neusoft.com/upload/jigsawImg/" + template + ".png";
             target = "http://kq.neusoft.com/upload/jigsawImg/" + target + ".png";
 
-            System.IO.FileStream fs;
+            //System.IO.FileStream fs;
             /*
                             var client = new HttpClient();
                             byte[] urlContents = await client.GetByteArrayAsync(template);
@@ -481,11 +476,13 @@ namespace SignSystem
 
                             fs.Close();*/
             WebClient client = new WebClient();
+            //不加锁的话只能下载第一个图片，然后就去匹配去了，由于第二个图片还没有下载下来，导致匹配的时候报错。
+            //为什么第二个图片下载不下来需要进一步调查。
             Monitor.Enter(this);
             /*          client.DownloadFile(target, "D:\test_png\target.png");
                       client.DownloadFile(template, "D:\test_png\template.png");*/
-            client.DownloadFile(target, "D:\\test_png\\target.png");
-            client.DownloadFile(template, "D:\\test_png\\template.png");
+            client.DownloadFile(target, AppDomain.CurrentDomain.BaseDirectory + "\\target.png");
+            client.DownloadFile(template, AppDomain.CurrentDomain.BaseDirectory + "\\template.png");
             Console.Write("Finish download image ");
             Monitor.Exit(this);
         }
