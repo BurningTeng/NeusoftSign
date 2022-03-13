@@ -281,6 +281,8 @@ namespace SignSystem
 
             //发送邮件
             SendMail("打卡成功" + DateTime.Now);
+            //取消代理，防止第二次调用代理中的saveImage。退出再次调用可能导致死锁。有机会检验一下。
+            StopProxyServer();
             //调用js
             string js_exit = "javascript:exitAttendance();";
             ((ChromeDriver)wd).ExecuteScript(js_exit, null);

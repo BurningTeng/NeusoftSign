@@ -20,15 +20,10 @@ int min = 0;
 int max = 120;
 SignUtils su = new();
 
-
-//signProxy.StopProxyServer();
-
-
 //等待任务完成
 /*task.GetAwaiter().OnCompleted(() =>
 {
     Console.WriteLine("打卡完成");
-   // signProxy.StopProxyServer();
 });*/
 //定时器相关代码
 System.Timers.Timer timer = new System.Timers.Timer();
@@ -52,7 +47,6 @@ void SignFilter(object? source, ElapsedEventArgs e)
             su.Sign();
         });
         task.Wait();
-        su.StopProxyServer();
         Console.WriteLine("早上打卡结束");
     }
     else if (DateTime.Now.Hour == 19 && DateTime.Now.Minute == 00)
@@ -67,13 +61,11 @@ void SignFilter(object? source, ElapsedEventArgs e)
             su.Sign();
         });
         task.Wait();
-        su.StopProxyServer();
         Console.WriteLine("晚上打卡结束");
     }
     else
     {
         Console.WriteLine("else: 当前进程号是:" + Process.GetCurrentProcess() + ", 线程号是:" + Thread.CurrentThread.ManagedThreadId);
-
         Console.WriteLine("当前时间是" + DateTime.Now);
     }
 
