@@ -1,18 +1,11 @@
 ﻿using OpenCvSharp;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Interactions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net;
 using Titanium.Web.Proxy;
 using Titanium.Web.Proxy.EventArguments;
 using Titanium.Web.Proxy.Http;
@@ -70,7 +63,7 @@ namespace SignSystem
             return matchLoc.X + 15;
         }
 
-        public static void SendMail(string content)
+        public static void SendMail(string content,string filepath, string email)
         {
             MailMessage message = new MailMessage();
 
@@ -78,7 +71,7 @@ namespace SignSystem
             MailAddress fromAddr = new MailAddress("2250911301@qq.com");
             message.From = fromAddr;
             //设置收件人,可添加多个,添加方法与下面的一样
-            message.To.Add("2250911301@qq.com");
+            message.To.Add(email);
             //设置抄送人
             // message.CC.Add("1592035782@qq.com");
             //设置邮件标题
@@ -86,15 +79,14 @@ namespace SignSystem
             //设置邮件内容
             message.Body = content;
 
-/*            string file = CaptureScreen();
-            Attachment data = new Attachment(file, MediaTypeNames.Application.Octet);
+            Attachment data = new(filepath, MediaTypeNames.Application.Octet);
             // Add time stamp information for the file.
             ContentDisposition disposition = data.ContentDisposition;
-            disposition.CreationDate = System.IO.File.GetCreationTime(file);
-            disposition.ModificationDate = System.IO.File.GetLastWriteTime(file);
-            disposition.ReadDate = System.IO.File.GetLastAccessTime(file);
+            disposition.CreationDate = System.IO.File.GetCreationTime(filepath);
+            disposition.ModificationDate = System.IO.File.GetLastWriteTime(filepath);
+            disposition.ReadDate = System.IO.File.GetLastAccessTime(filepath);
             // Add the file attachment to this email message.
-            message.Attachments.Add(data);*/
+            message.Attachments.Add(data);
 
             //设置邮件发送服务器,服务器根据你使用的邮箱而不同,可以到相应的 邮箱管理后台查看
             SmtpClient client = new SmtpClient("smtp.qq.com", 25);
@@ -215,24 +207,28 @@ namespace SignSystem
         }
 
 
-        public void Sign()
+        public void Sign(string name, string email, string password)
         {
+           // ChromeDriverService cd = ChromeDriverService.CreateDefaultService();
+           //需要先开启代理服务器才能启动
             IWebDriver wd = new ChromeDriver();
+
             wd.Navigate().GoToUrl("http://kq.neusoft.com/");
             IWindow window = wd.Manage().Window;
             window.Maximize();
             Thread.Sleep(3000);
-            wd.FindElement(By.ClassName("userName")).SendKeys("tengyb");
-            wd.FindElement(By.ClassName("password")).SendKeys("18345093167ASdgy123");
+            wd.FindElement(By.ClassName("userName")).SendKeys(name);
+            wd.FindElement(By.ClassName("password")).SendKeys(password);
             int distance = 0;
+            int i = 0;
             while (true)
             {
-                Console.WriteLine("Sign: 当前进程号是:" + Process.GetCurrentProcess() + ", 线程号是:" + Thread.CurrentThread.ManagedThreadId);
-
+                Console.WriteLine("Sign: 当前进程是:" + Process.GetCurrentProcess() + ", 线程号是:" + Thread.CurrentThread.ManagedThreadId);
+                Console.WriteLine("i的值是" + i);
                 Monitor.Enter(this);
                 distance = Match(AppDomain.CurrentDomain.BaseDirectory + "\\template.png", AppDomain.CurrentDomain.BaseDirectory + "\\target.png");
-                Monitor.Exit(this);
                 Console.WriteLine("匹配检测出的距离是:" + distance);
+                Monitor.Exit(this);
                 //这是滑块
                 var slide = wd.FindElement(By.ClassName("ui-slider-btn"));
                 Actions action = new (wd);
@@ -253,24 +249,22 @@ namespace SignSystem
                     alert = "";
                 }
 
-
                 if (alert.Contains("验证成功"))
                 {
-                    Console.WriteLine("滑块验证成功!");
-                    Console.WriteLine("移动的距离是:" + distance);
+                    Console.WriteLine("滑块验证成功, 移动的距离是:" + distance);
                     break;
                 }
                 else
                 {
-                    Console.WriteLine("滑块验证失败!");
-                    
+                    Console.WriteLine("滑块验证失败, 移动的距离是:" + distance);
                     action.Release().Perform();
                     Thread.Sleep(1000);
                     wd.SwitchTo().DefaultContent();
                 }
-                Thread.Sleep(1000);
-
+                i++;
+                Thread.Sleep(2000);
             }
+
             wd.FindElement(By.Id("loginButton")).Click();
             Thread.Sleep(3000);
 
@@ -278,16 +272,26 @@ namespace SignSystem
             string js_sign = "javascript:document.attendanceForm.submit();";
             ((ChromeDriver)wd).ExecuteScript(js_sign, null);
             Thread.Sleep(2000);
-
-            //发送邮件
-            SendMail("打卡成功" + DateTime.Now);
-            //取消代理，防止第二次调用代理中的saveImage。退出再次调用可能导致死锁。有机会检验一下。
+            //截屏
+            var screenshot = ((ChromeDriver)wd).GetScreenshot();
+            System.Drawing.Image screenshotImage;
+            using (MemoryStream memStream = new MemoryStream(screenshot.AsByteArray))
+            {
+                screenshotImage = System.Drawing.Image.FromStream(memStream);
+            }
+            string filePath = AppDomain.CurrentDomain.BaseDirectory + "screenshot.png";
+            //  fs = new System.IO.FileStream(AppDomain.CurrentDomain.BaseDirectory + "\\images\\" + i.ToString() + ".jpg", System.IO.FileMode.CreateNew);
+            screenshotImage.Save(filePath);
+            SendMail("打卡成功" + DateTime.Now, filePath, email);
+            //取消代理
             StopProxyServer();
             //调用js
             string js_exit = "javascript:exitAttendance();";
             ((ChromeDriver)wd).ExecuteScript(js_exit, null);
             Thread.Sleep(3000);
             wd.Quit();
+            //Why another process use it?
+           // File.Delete(filePath);
         }
 
 
@@ -433,6 +437,7 @@ namespace SignSystem
                     Console.WriteLine(e.HttpClient.Request.RequestUri.AbsoluteUri);
                     if ("http://kq.neusoft.com/jigsaw".Equals(e.HttpClient.Request.Url))
                     {
+                        //exit的时候会走第二次。 在exit之前调用StopProxyServer，防止出现第二次走这个方法的情况。
                         Console.WriteLine("OnResponse: 当前进程号是:" + Process.GetCurrentProcess() + ", 线程号是:" + Thread.CurrentThread.ManagedThreadId);
                         SaveImage(stringResponse);
                         // Console.WriteLine("finish download");
@@ -485,7 +490,8 @@ namespace SignSystem
                       client.DownloadFile(template, "D:\test_png\template.png");*/
             client.DownloadFile(target, AppDomain.CurrentDomain.BaseDirectory + "\\target.png");
             client.DownloadFile(template, AppDomain.CurrentDomain.BaseDirectory + "\\template.png");
-            Console.Write("Finish download image ");
+            Console.WriteLine("Finish download image ");
+            Monitor.PulseAll(this);
             Monitor.Exit(this);
         }
 

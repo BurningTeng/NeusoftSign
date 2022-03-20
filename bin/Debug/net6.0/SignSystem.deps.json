@@ -8,6 +8,7 @@
     ".NETCoreApp,Version=v6.0": {
       "SignSystem/1.0.0": {
         "dependencies": {
+          "AWSSDK.Core": "3.7.9",
           "Newtonsoft.Json": "13.0.1",
           "OpenCvSharp4": "4.5.5.20211231",
           "OpenCvSharp4.runtime.win": "4.5.5.20211231",
@@ -20,6 +21,14 @@
         },
         "runtime": {
           "SignSystem.dll": {}
+        }
+      },
+      "AWSSDK.Core/3.7.9": {
+        "runtime": {
+          "lib/netcoreapp3.1/AWSSDK.Core.dll": {
+            "assemblyVersion": "3.3.0.0",
+            "fileVersion": "3.7.9.0"
+          }
         }
       },
       "BrotliSharpLib/0.3.3": {
@@ -187,6 +196,13 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "AWSSDK.Core/3.7.9": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-KD3Uy8s7S+Qmmvu0z8szEddVaNB9G/UinPWkTOwAbjS6oGeoVBwAbvhHCtPymdoXHwhQMvuBBwmjk4vJT+CFpA==",
+      "path": "awssdk.core/3.7.9",
+      "hashPath": "awssdk.core.3.7.9.nupkg.sha512"
     },
     "BrotliSharpLib/0.3.3": {
       "type": "package",

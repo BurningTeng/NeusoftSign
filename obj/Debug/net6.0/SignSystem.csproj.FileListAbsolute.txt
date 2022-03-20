@@ -30,3 +30,4 @@ D:\vs2022\Project\SignSystem\obj\Debug\net6.0\refint\SignSystem.dll
 D:\vs2022\Project\SignSystem\obj\Debug\net6.0\SignSystem.pdb
 D:\vs2022\Project\SignSystem\obj\Debug\net6.0\SignSystem.genruntimeconfig.cache
 D:\vs2022\Project\SignSystem\obj\Debug\net6.0\ref\SignSystem.dll
+D:\vs2022\Project\SignSystem\bin\Debug\net6.0\AWSSDK.Core.dll

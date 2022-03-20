@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "6rf4EQVaq6v5Tp9YMN8Y22Zug70um1dpUEaJ+p/LE7tAHz2MhD2iAqbwlJL6D1Avu1z0rK4pEHecQH9dIMwA7A==",
+  "dgSpecHash": "3PXxMk8s3ios1j57XJ8PmSt2VQhxpbV6ToxHv7r7iBpVpCdvGncLQzWm8boisQTvhzGGXbdbZT/i7UjdoCntZA==",
   "success": true,
   "projectFilePath": "D:\\vs2022\\Project\\SignSystem\\SignSystem.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\burning\\.nuget\\packages\\awssdk.core\\3.7.9\\awssdk.core.3.7.9.nupkg.sha512",
     "C:\\Users\\burning\\.nuget\\packages\\brotlisharplib\\0.3.3\\brotlisharplib.0.3.3.nupkg.sha512",
     "C:\\Users\\burning\\.nuget\\packages\\microsoft.netcore.platforms\\5.0.0\\microsoft.netcore.platforms.5.0.0.nupkg.sha512",
     "C:\\Users\\burning\\.nuget\\packages\\microsoft.win32.registry\\5.0.0\\microsoft.win32.registry.5.0.0.nupkg.sha512",

@@ -16,4 +16,7 @@
   <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
     <Import Project="$(NuGetPackageRoot)opencvsharp4.runtime.win\4.5.5.20211231\build\net5.0\OpenCvSharp4.runtime.win.props" Condition="Exists('$(NuGetPackageRoot)opencvsharp4.runtime.win\4.5.5.20211231\build\net5.0\OpenCvSharp4.runtime.win.props')" />
   </ImportGroup>
+  <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <PkgAWSSDK_Core Condition=" '$(PkgAWSSDK_Core)' == '' ">C:\Users\burning\.nuget\packages\awssdk.core\3.7.9</PkgAWSSDK_Core>
+  </PropertyGroup>
 </Project>
