@@ -20,23 +20,24 @@ int min = 0;
 int max = 120;
 SignUtils su = new();
 
+//Debug模式， 文件位置 D:\vs2022\Project\SignSystem\bin\Debug\net6.0\PersonInfo.json
 var listPerson = JsonMapper.ToObject<List<PersonInfo>>(File.ReadAllText("PersonInfo.json"));
 
 
-/*var task = Task.Run(() =>
+var task = Task.Run(() =>
 {
     su.StartProxyServer();
     su.SetProxyPort();
     su.Sign(listPerson[0].name, listPerson[0].email, listPerson[0].password);
-});*/
+});
 /*.ContinueWith((task1) =>
 {
     su.StartProxyServer();
     su.SetProxyPort();
     su.Sign();
-});
-task.Wait();*/
-
+});*/
+task.Wait();
+Console.WriteLine("打卡完成");
 Console.ReadKey();
 
 //signProxy.StopProxyServer();
@@ -49,7 +50,7 @@ Console.ReadKey();
    // signProxy.StopProxyServer();
 });*/
 //定时器相关代码
-System.Timers.Timer timer = new System.Timers.Timer();
+/*System.Timers.Timer timer = new System.Timers.Timer();
 timer.Enabled = true;
 timer.Interval = 60000;//执行间隔时间,单位为毫秒;此时时间间隔为1分钟  
 timer.Start();
@@ -92,4 +93,4 @@ void SignFilter(object? source, ElapsedEventArgs e)
         Console.WriteLine("当前时间是" + DateTime.Now);
     }
 
-}
+}*/

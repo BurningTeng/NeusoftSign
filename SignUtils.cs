@@ -60,7 +60,7 @@ namespace SignSystem
             Cv2.MinMaxLoc(result, out minLoc, out maxLoc);
             matchLoc = maxLoc;
 
-            return matchLoc.X + 15;
+            return matchLoc.X + 16;
         }
 
         public static void SendMail(string content,string filepath, string email)
@@ -235,11 +235,14 @@ namespace SignSystem
                 //点击并按住滑块元素
                 action.ClickAndHold(slide);
                 action.MoveByOffset(distance, 0);
-                Thread.Sleep(1000);
                 string alert;
 
                 try
                 {
+                    //解决了为什么进入两次的bug。以前在else里面进行release和perform导致在try里面没有对滑块
+                    //进行任何的操作。
+                    action.Release().Perform();
+                    Thread.Sleep(2000);
                     alert = wd.FindElement(By.ClassName("ui-slider-text")).Text;
                     Console.WriteLine(alert);
                 }
@@ -257,8 +260,6 @@ namespace SignSystem
                 else
                 {
                     Console.WriteLine("滑块验证失败, 移动的距离是:" + distance);
-                    action.Release().Perform();
-                    Thread.Sleep(1000);
                     wd.SwitchTo().DefaultContent();
                 }
                 i++;
@@ -491,7 +492,6 @@ namespace SignSystem
             client.DownloadFile(target, AppDomain.CurrentDomain.BaseDirectory + "\\target.png");
             client.DownloadFile(template, AppDomain.CurrentDomain.BaseDirectory + "\\template.png");
             Console.WriteLine("Finish download image ");
-            Monitor.PulseAll(this);
             Monitor.Exit(this);
         }
 
