@@ -13,6 +13,7 @@ using Titanium.Web.Proxy.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
+using System.Runtime.Versioning;
 
 namespace SignSystem
 {
@@ -63,15 +64,15 @@ namespace SignSystem
             return matchLoc.X + 16;
         }
 
-        public static void SendMail(string content,string filepath, string email)
+        public static void SendMail(string content,string filepath, string? email)
         {
-            MailMessage message = new MailMessage();
+            MailMessage message = new();
 
             //设置发件人,发件人需要与设置的邮件发送服务器的邮箱一致
             MailAddress fromAddr = new MailAddress("2250911301@qq.com");
             message.From = fromAddr;
             //设置收件人,可添加多个,添加方法与下面的一样
-            message.To.Add(email);
+            message.To.Add(email == null ? "2250911301@qq.com": email);
             //设置抄送人
             // message.CC.Add("1592035782@qq.com");
             //设置邮件标题
@@ -79,14 +80,22 @@ namespace SignSystem
             //设置邮件内容
             message.Body = content;
 
-            Attachment data = new(filepath, MediaTypeNames.Application.Octet);
-            // Add time stamp information for the file.
-            ContentDisposition disposition = data.ContentDisposition;
-            disposition.CreationDate = System.IO.File.GetCreationTime(filepath);
-            disposition.ModificationDate = System.IO.File.GetLastWriteTime(filepath);
-            disposition.ReadDate = System.IO.File.GetLastAccessTime(filepath);
-            // Add the file attachment to this email message.
-            message.Attachments.Add(data);
+            Attachment? data = new(filepath, MediaTypeNames.Application.Octet);
+
+            if (data != null)
+            {
+                // Add time stamp information for the file.
+                ContentDisposition? disposition = data.ContentDisposition;
+                if (disposition != null)
+                {
+                    disposition.CreationDate = System.IO.File.GetCreationTime(filepath);
+                    disposition.ModificationDate = System.IO.File.GetLastWriteTime(filepath);
+                    disposition.ReadDate = System.IO.File.GetLastAccessTime(filepath);
+                }
+                // Add the file attachment to this email message.
+                message.Attachments.Add(data);
+
+            }
 
             //设置邮件发送服务器,服务器根据你使用的邮箱而不同,可以到相应的 邮箱管理后台查看
             SmtpClient client = new SmtpClient("smtp.qq.com", 25);
@@ -206,8 +215,8 @@ namespace SignSystem
             public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
         }
 
-
-        public void Sign(string name, string email, string password)
+        [SupportedOSPlatform("windows")]
+        public void Sign(string? name, string? email, string? password)
         {
            // ChromeDriverService cd = ChromeDriverService.CreateDefaultService();
            //需要先开启代理服务器才能启动
@@ -217,8 +226,8 @@ namespace SignSystem
             IWindow window = wd.Manage().Window;
             window.Maximize();
             Thread.Sleep(3000);
-            wd.FindElement(By.ClassName("userName")).SendKeys(name);
-            wd.FindElement(By.ClassName("password")).SendKeys(password);
+            wd.FindElement(By.ClassName("userName")).SendKeys(name == null ? "tengyb": name);
+            wd.FindElement(By.ClassName("password")).SendKeys(password == null ? "18345093167ASdgy123" : password);
             int distance = 0;
             while (true)
             {
@@ -353,7 +362,7 @@ namespace SignSystem
             proxyServer.Stop();
         }
 
-        private async Task OnBeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
+/*        private async Task OnBeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
         {
             string hostname = e.HttpClient.Request.RequestUri.Host;
 
@@ -364,7 +373,7 @@ namespace SignSystem
                 // for example dropbox.com
                 e.DecryptSsl = false;
             }
-        }
+        }*/
 
         private async Task OnRequest(object sender, SessionEventArgs e)
         {
@@ -461,10 +470,9 @@ namespace SignSystem
 
         private void SaveImage(String stringResponse)
         {
-
-            JObject jo = (JObject)JsonConvert.DeserializeObject(stringResponse);
-            template = jo["smallImage"].ToString();
-            target = jo["bigImage"].ToString();
+            var jo = JsonConvert.DeserializeObject(stringResponse) as JObject;
+            template = jo?["smallImage"]?.ToString();
+            target = jo?["bigImage"]?.ToString();
             template = "http://kq.neusoft.com/upload/jigsawImg/" + template + ".png";
             target = "http://kq.neusoft.com/upload/jigsawImg/" + target + ".png";
 
@@ -480,7 +488,7 @@ namespace SignSystem
                             fs.Write(urlContents, 0, urlContents.Length);
 
                             fs.Close();*/
-            WebClient client = new WebClient();
+            WebClient client = new();
             //不加锁的话只能下载第一个图片，然后就去匹配去了，由于第二个图片还没有下载下来，导致匹配的时候报错。
             //为什么第二个图片下载不下来需要进一步调查。
             Monitor.Enter(this);
@@ -501,7 +509,7 @@ namespace SignSystem
             //文件名：序号+.jpg。可指定范围，以下是获取100.jpg~500.jpg.
             for (int i = 1; i <= 50; i++)
             {
-                var uri = new Uri(Uri.EscapeUriString(imgSourceURL + i.ToString() + ".jpg"));
+                var uri = new Uri(Uri.EscapeDataString(imgSourceURL + i.ToString() + ".jpg"));
                 byte[] urlContents = await client.GetByteArrayAsync(uri);
                 fs = new System.IO.FileStream(AppDomain.CurrentDomain.BaseDirectory + "\\images\\" + i.ToString() + ".jpg", System.IO.FileMode.CreateNew);
                 fs.Write(urlContents, 0, urlContents.Length);
