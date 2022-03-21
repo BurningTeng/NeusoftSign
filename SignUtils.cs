@@ -220,11 +220,9 @@ namespace SignSystem
             wd.FindElement(By.ClassName("userName")).SendKeys(name);
             wd.FindElement(By.ClassName("password")).SendKeys(password);
             int distance = 0;
-            int i = 0;
             while (true)
             {
                 Console.WriteLine("Sign: 当前进程是:" + Process.GetCurrentProcess() + ", 线程号是:" + Thread.CurrentThread.ManagedThreadId);
-                Console.WriteLine("i的值是" + i);
                 Monitor.Enter(this);
                 distance = Match(AppDomain.CurrentDomain.BaseDirectory + "\\template.png", AppDomain.CurrentDomain.BaseDirectory + "\\target.png");
                 Console.WriteLine("匹配检测出的距离是:" + distance);
@@ -262,7 +260,6 @@ namespace SignSystem
                     Console.WriteLine("滑块验证失败, 移动的距离是:" + distance);
                     wd.SwitchTo().DefaultContent();
                 }
-                i++;
                 Thread.Sleep(2000);
             }
 

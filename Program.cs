@@ -38,7 +38,7 @@ var listPerson = JsonMapper.ToObject<List<PersonInfo>>(File.ReadAllText("PersonI
 });*/
 //task.Wait();
 //Console.WriteLine("打卡完成");
-Console.ReadKey();
+//Console.ReadKey();
 
 //signProxy.StopProxyServer();
 
