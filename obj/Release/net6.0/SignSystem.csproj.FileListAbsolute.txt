@@ -24,3 +24,10 @@ D:\vs2022\Project\SignSystem\obj\Release\net6.0\SignSystem.csproj.CopyComplete
 D:\vs2022\Project\SignSystem\obj\Release\net6.0\SignSystem.dll
 D:\vs2022\Project\SignSystem\obj\Release\net6.0\refint\SignSystem.dll
 D:\vs2022\Project\SignSystem\obj\Release\net6.0\SignSystem.pdb
+D:\vs2022\Project\SignSystem\bin\Release\net6.0\SignSystem.deps.json
+D:\vs2022\Project\SignSystem\bin\Release\net6.0\SignSystem.runtimeconfig.json
+D:\vs2022\Project\SignSystem\bin\Release\net6.0\SignSystem.dll
+D:\vs2022\Project\SignSystem\bin\Release\net6.0\SignSystem.pdb
+D:\vs2022\Project\SignSystem\bin\Release\net6.0\AWSSDK.Core.dll
+D:\vs2022\Project\SignSystem\obj\Release\net6.0\SignSystem.genruntimeconfig.cache
+D:\vs2022\Project\SignSystem\obj\Release\net6.0\ref\SignSystem.dll

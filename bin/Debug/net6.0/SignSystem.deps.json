@@ -14,8 +14,9 @@
           "OpenCvSharp4.runtime.win": "4.5.5.20211231",
           "Selenium.Support": "4.1.0",
           "Selenium.WebDriver": "4.1.0",
-          "Selenium.WebDriver.ChromeDriver": "98.0.4758.10200",
+          "Selenium.WebDriver.ChromeDriver": "100.0.4896.6000",
           "Selenium.WebDriver.GeckoDriver": "0.30.0.1",
+          "Selenium.WebDriver.MSEdgeDriver": "99.0.1150.46",
           "System.Drawing.Common": "6.0.0",
           "Titanium.Web.Proxy": "3.1.1397"
         },
@@ -139,8 +140,9 @@
           }
         }
       },
-      "Selenium.WebDriver.ChromeDriver/98.0.4758.10200": {},
+      "Selenium.WebDriver.ChromeDriver/100.0.4896.6000": {},
       "Selenium.WebDriver.GeckoDriver/0.30.0.1": {},
+      "Selenium.WebDriver.MSEdgeDriver/99.0.1150.46": {},
       "System.Drawing.Common/6.0.0": {
         "dependencies": {
           "Microsoft.Win32.SystemEvents": "6.0.0"
@@ -274,12 +276,12 @@
       "path": "selenium.webdriver/4.1.0",
       "hashPath": "selenium.webdriver.4.1.0.nupkg.sha512"
     },
-    "Selenium.WebDriver.ChromeDriver/98.0.4758.10200": {
+    "Selenium.WebDriver.ChromeDriver/100.0.4896.6000": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-+vKrrLkZ3rqsDDxjH7Z0AhkgYCtcppJ36iVcnzRKCOiFK2kUbxL1ESi5ExhqeeyPFZAO6Mm+n48ctJ4D6H9LEA==",
-      "path": "selenium.webdriver.chromedriver/98.0.4758.10200",
-      "hashPath": "selenium.webdriver.chromedriver.98.0.4758.10200.nupkg.sha512"
+      "sha512": "sha512-ttUzQ+lgWSifCMhw1MGUf4eFt9Vh88O1mua58huh5zLMZdqa/Wrh+lQGZnZrcvoifq85fWx7ESlbl57iPDaJ+w==",
+      "path": "selenium.webdriver.chromedriver/100.0.4896.6000",
+      "hashPath": "selenium.webdriver.chromedriver.100.0.4896.6000.nupkg.sha512"
     },
     "Selenium.WebDriver.GeckoDriver/0.30.0.1": {
       "type": "package",
@@ -287,6 +289,13 @@
       "sha512": "sha512-BoeVn6PFkw/Lte8FtFJpIvd9EeolIGTb7rcKPJB9XBEI+QC57fMV4jcHNv5NABOKepA81G6fGhD7gwMGKbAytA==",
       "path": "selenium.webdriver.geckodriver/0.30.0.1",
       "hashPath": "selenium.webdriver.geckodriver.0.30.0.1.nupkg.sha512"
+    },
+    "Selenium.WebDriver.MSEdgeDriver/99.0.1150.46": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ykyrOPE7a2nlZLDCRtysEHQpgERDA50Tyrw7JjDUlUz3jXfMhx8Z7zlWeklPTtnDqfqcSo2lqCewCPrUPoRVEA==",
+      "path": "selenium.webdriver.msedgedriver/99.0.1150.46",
+      "hashPath": "selenium.webdriver.msedgedriver.99.0.1150.46.nupkg.sha512"
     },
     "System.Drawing.Common/6.0.0": {
       "type": "package",

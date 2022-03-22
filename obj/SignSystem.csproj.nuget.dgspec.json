@@ -70,11 +70,15 @@
             },
             "Selenium.WebDriver.ChromeDriver": {
               "target": "Package",
-              "version": "[98.0.4758.10200, )"
+              "version": "[100.0.4896.6000, )"
             },
             "Selenium.WebDriver.GeckoDriver": {
               "target": "Package",
               "version": "[0.30.0.1, )"
+            },
+            "Selenium.WebDriver.MSEdgeDriver": {
+              "target": "Package",
+              "version": "[99.0.1150.46, )"
             },
             "System.Drawing.Common": {
               "target": "Package",

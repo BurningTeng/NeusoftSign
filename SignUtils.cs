@@ -14,11 +14,15 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Runtime.Versioning;
+using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium.Edge;
 
 namespace SignSystem
 {
     internal class SignUtils
     {
+        public  bool exit { get; set; }
+
         public static void TestOpenCv(string template)
         {
             Mat src = new Mat(template, ImreadModes.Grayscale);//小写的scale，不然报错
@@ -215,12 +219,37 @@ namespace SignSystem
             public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
         }
 
+
+        public static void MoveSlideByOffSet(Actions action, int distance)
+        {
+            Thread.Sleep(500);
+            int has_gone_dist = 0;
+            int remaining_dist = distance;
+            Random random = new();
+            int span;
+            while (remaining_dist > 0)
+            {
+                var ratio = remaining_dist / distance;
+                if (ratio < 0.1)
+                    span = random.Next(3, 5);
+                else if (ratio > 0.9)
+                    span = random.Next(5, 8);
+                else
+                    span = random.Next(15, 20);
+                action.MoveByOffset(span, random.Next(-5, 5));
+                remaining_dist -= span;
+                has_gone_dist += span;
+                Thread.Sleep(random.Next(5, 20) / 100);
+            }
+
+            action.MoveByOffset(remaining_dist, random.Next(-5, 5));
+        }
+
         [SupportedOSPlatform("windows")]
         public void Sign(string? name, string? email, string? password)
-        {
-           // ChromeDriverService cd = ChromeDriverService.CreateDefaultService();
-           //需要先开启代理服务器才能启动
-            IWebDriver wd = new ChromeDriver();
+        {            
+            // EdgeDriverService cd = EdgeDriverService.CreateDefaultService();
+            IWebDriver wd = new EdgeDriver();
 
             wd.Navigate().GoToUrl("http://kq.neusoft.com/");
             IWindow window = wd.Manage().Window;
@@ -228,7 +257,7 @@ namespace SignSystem
             Thread.Sleep(3000);
             wd.FindElement(By.ClassName("userName")).SendKeys(name == null ? "tengyb": name);
             wd.FindElement(By.ClassName("password")).SendKeys(password == null ? "18345093167ASdgy123" : password);
-            int distance = 0;
+            int distance;
             while (true)
             {
                 Console.WriteLine("Sign: 当前进程是:" + Process.GetCurrentProcess() + ", 线程号是:" + Thread.CurrentThread.ManagedThreadId);
@@ -241,7 +270,8 @@ namespace SignSystem
                 Actions action = new (wd);
                 //点击并按住滑块元素
                 action.ClickAndHold(slide);
-                action.MoveByOffset(distance, 0);
+                //action.MoveByOffset(distance, 0);
+                MoveSlideByOffSet(action, distance);
                 string alert;
 
                 try
@@ -275,12 +305,11 @@ namespace SignSystem
             wd.FindElement(By.Id("loginButton")).Click();
             Thread.Sleep(3000);
 
-            //Thread.Sleep(3*60*1000);
             string js_sign = "javascript:document.attendanceForm.submit();";
-            ((ChromeDriver)wd).ExecuteScript(js_sign, null);
+           // ((EdgeDriver)wd).ExecuteScript(js_sign, null);
             Thread.Sleep(2000);
             //截屏
-            var screenshot = ((ChromeDriver)wd).GetScreenshot();
+            var screenshot = ((EdgeDriver)wd).GetScreenshot();
             System.Drawing.Image screenshotImage;
             using (MemoryStream memStream = new MemoryStream(screenshot.AsByteArray))
             {
@@ -290,15 +319,13 @@ namespace SignSystem
             //  fs = new System.IO.FileStream(AppDomain.CurrentDomain.BaseDirectory + "\\images\\" + i.ToString() + ".jpg", System.IO.FileMode.CreateNew);
             screenshotImage.Save(filePath);
             SendMail("打卡成功" + DateTime.Now, filePath, email);
-            //取消代理
-            StopProxyServer();
+
             //调用js
             string js_exit = "javascript:exitAttendance();";
-            ((ChromeDriver)wd).ExecuteScript(js_exit, null);
+            exit = true;
+            ((EdgeDriver)wd).ExecuteScript(js_exit, null);
             Thread.Sleep(3000);
             wd.Quit();
-            //Why another process use it?
-           // File.Delete(filePath);
         }
 
 
@@ -321,9 +348,9 @@ namespace SignSystem
             proxyServer.ClientCertificateSelectionCallback += OnCertificateSelection;
         }
 
-        public void SetProxyPort()
+        public void SetProxyPort(int port)
         {
-            var explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Any, 8000, true)
+            var explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Any, port, true)
             {
                 // Use self-issued generic certificate on all https requests
                 // Optimizes performance by not creating a certificate for each https-enabled domain
@@ -446,7 +473,11 @@ namespace SignSystem
                     {
                         //exit的时候会走第二次。 在exit之前调用StopProxyServer，防止出现第二次走这个方法的情况。
                         Console.WriteLine("OnResponse: 当前进程号是:" + Process.GetCurrentProcess() + ", 线程号是:" + Thread.CurrentThread.ManagedThreadId);
-                        SaveImage(stringResponse);
+                        if (!exit)
+                        {
+                            SaveImage(stringResponse);
+
+                        }
                         // Console.WriteLine("finish download");
 
                     }

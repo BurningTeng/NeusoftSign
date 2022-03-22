@@ -148,7 +148,7 @@
           "lib/net5.0/WebDriver.dll": {}
         }
       },
-      "Selenium.WebDriver.ChromeDriver/98.0.4758.10200": {
+      "Selenium.WebDriver.ChromeDriver/100.0.4896.6000": {
         "type": "package",
         "build": {
           "build/Selenium.WebDriver.ChromeDriver.targets": {}
@@ -158,6 +158,12 @@
         "type": "package",
         "build": {
           "build/Selenium.WebDriver.GeckoDriver.targets": {}
+        }
+      },
+      "Selenium.WebDriver.MSEdgeDriver/99.0.1150.46": {
+        "type": "package",
+        "build": {
+          "build/Selenium.WebDriver.MSEdgeDriver.targets": {}
         }
       },
       "System.Drawing.Common/6.0.0": {
@@ -525,10 +531,10 @@
         "selenium.webdriver.nuspec"
       ]
     },
-    "Selenium.WebDriver.ChromeDriver/98.0.4758.10200": {
-      "sha512": "+vKrrLkZ3rqsDDxjH7Z0AhkgYCtcppJ36iVcnzRKCOiFK2kUbxL1ESi5ExhqeeyPFZAO6Mm+n48ctJ4D6H9LEA==",
+    "Selenium.WebDriver.ChromeDriver/100.0.4896.6000": {
+      "sha512": "ttUzQ+lgWSifCMhw1MGUf4eFt9Vh88O1mua58huh5zLMZdqa/Wrh+lQGZnZrcvoifq85fWx7ESlbl57iPDaJ+w==",
       "type": "package",
-      "path": "selenium.webdriver.chromedriver/98.0.4758.10200",
+      "path": "selenium.webdriver.chromedriver/100.0.4896.6000",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -539,7 +545,7 @@
         "driver/mac64/chromedriver",
         "driver/win32/chromedriver.exe",
         "nupkg-icon.png",
-        "selenium.webdriver.chromedriver.98.0.4758.10200.nupkg.sha512",
+        "selenium.webdriver.chromedriver.100.0.4896.6000.nupkg.sha512",
         "selenium.webdriver.chromedriver.nuspec"
       ]
     },
@@ -560,6 +566,24 @@
         "nupkg-icon.png",
         "selenium.webdriver.geckodriver.0.30.0.1.nupkg.sha512",
         "selenium.webdriver.geckodriver.nuspec"
+      ]
+    },
+    "Selenium.WebDriver.MSEdgeDriver/99.0.1150.46": {
+      "sha512": "ykyrOPE7a2nlZLDCRtysEHQpgERDA50Tyrw7JjDUlUz3jXfMhx8Z7zlWeklPTtnDqfqcSo2lqCewCPrUPoRVEA==",
+      "type": "package",
+      "path": "selenium.webdriver.msedgedriver/99.0.1150.46",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "build/DefinePropertiesMSEdgeDriver.targets",
+        "build/Selenium.WebDriver.MSEdgeDriver.targets",
+        "driver/linux64/msedgedriver",
+        "driver/mac64/msedgedriver",
+        "driver/win32/msedgedriver.exe",
+        "driver/win64/msedgedriver.exe",
+        "license/license.txt",
+        "selenium.webdriver.msedgedriver.99.0.1150.46.nupkg.sha512",
+        "selenium.webdriver.msedgedriver.nuspec"
       ]
     },
     "System.Drawing.Common/6.0.0": {
@@ -775,8 +799,9 @@
       "OpenCvSharp4.runtime.win >= 4.5.5.20211231",
       "Selenium.Support >= 4.1.0",
       "Selenium.WebDriver >= 4.1.0",
-      "Selenium.WebDriver.ChromeDriver >= 98.0.4758.10200",
+      "Selenium.WebDriver.ChromeDriver >= 100.0.4896.6000",
       "Selenium.WebDriver.GeckoDriver >= 0.30.0.1",
+      "Selenium.WebDriver.MSEdgeDriver >= 99.0.1150.46",
       "System.Drawing.Common >= 6.0.0",
       "Titanium.Web.Proxy >= 3.1.1397"
     ]
@@ -851,11 +876,15 @@
           },
           "Selenium.WebDriver.ChromeDriver": {
             "target": "Package",
-            "version": "[98.0.4758.10200, )"
+            "version": "[100.0.4896.6000, )"
           },
           "Selenium.WebDriver.GeckoDriver": {
             "target": "Package",
             "version": "[0.30.0.1, )"
+          },
+          "Selenium.WebDriver.MSEdgeDriver": {
+            "target": "Package",
+            "version": "[99.0.1150.46, )"
           },
           "System.Drawing.Common": {
             "target": "Package",
