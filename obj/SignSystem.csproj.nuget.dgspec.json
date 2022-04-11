@@ -64,13 +64,13 @@
               "target": "Package",
               "version": "[4.1.0, )"
             },
-            "Selenium.WebDriver.ChromeDriver": {
-              "target": "Package",
-              "version": "[98.0.4758.10200, )"
-            },
             "Selenium.WebDriver.GeckoDriver": {
               "target": "Package",
               "version": "[0.30.0.1, )"
+            },
+            "Selenium.WebDriver.MSEdgeDriver": {
+              "target": "Package",
+              "version": "[100.0.1185.36, )"
             },
             "Titanium.Web.Proxy": {
               "target": "Package",
@@ -92,7 +92,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.102\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.201\\RuntimeIdentifierGraph.json"
         }
       }
     }
