@@ -16,6 +16,8 @@ using System.Diagnostics;
 using System.Runtime.Versioning;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Edge;
+using System.Collections;
+using System.Net.NetworkInformation;
 
 namespace SignSystem
 {
@@ -245,12 +247,65 @@ namespace SignSystem
             action.MoveByOffset(remaining_dist, random.Next(-5, 5));
         }
 
+
+        public static int GetFreePort()
+        {
+            int port;
+            while (true)
+            {
+                int start = 1024;
+                int end = 65535;
+                var random = new Random();
+                port = random.Next(start, end);
+                if (!PortIsUsed().Contains(port))
+                {
+                    Console.WriteLine("free port is:" + port);
+                    break;
+                }
+            }
+            return port;
+        }
+
+        /// <summary>        
+        /// 获取操作系统已用的端口号        
+        /// </summary>        
+        /// <returns></returns>
+        /// https://www.cnblogs.com/xdoudou/p/3605134.html#:~:text=C%23%E9%9A%8F%E6%9C%BA%E5%8F%96%E5%BE%97%E5%8F%AF%E7%94%A8%E7%AB%AF%E5%8F%A3%E5%8F%B7%20TCP%E4%B8%8EUDP%E6%AE%B5%E7%BB%93%E6%9E%84%E4%B8%AD%E7%AB%AF%E5%8F%A3%E5%9C%B0%E5%9D%80%E9%83%BD%E6%98%AF16%E6%AF%94%E7%89%B9%EF%BC%8C%E5%8F%AF%E4%BB%A5%E6%9C%89%E5%9C%A80---65535%E8%8C%83%E5%9B%B4%E5%86%85%E7%9A%84%E7%AB%AF%E5%8F%A3%E5%8F%B7%E3%80%82,%E5%AF%B9%E4%BA%8E%E8%BF%9965536%E4%B8%AA%E7%AB%AF%E5%8F%A3%E5%8F%B7%E6%9C%89%E4%BB%A5%E4%B8%8B%E7%9A%84%E4%BD%BF%E7%94%A8%E8%A7%84%E5%AE%9A%EF%BC%9A%20%EF%BC%881%EF%BC%89%E7%AB%AF%E5%8F%A3%E5%8F%B7%E5%B0%8F%E4%BA%8E256%E7%9A%84%E5%AE%9A%E4%B9%89%E4%B8%BA%E5%B8%B8%E7%94%A8%E7%AB%AF%E5%8F%A3%EF%BC%8C%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%80%E8%88%AC%E9%83%BD%E6%98%AF%E9%80%9A%E8%BF%87%E5%B8%B8%E7%94%A8%E7%AB%AF%E5%8F%A3%E5%8F%B7%E6%9D%A5%E8%AF%86%E5%88%AB%E7%9A%84%E3%80%82
+        static IList PortIsUsed()
+        {
+            //获取本地计算机的网络连接和通信统计数据的信息            
+            IPGlobalProperties ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
+            //返回本地计算机上的所有Tcp监听程序            
+            IPEndPoint[] ipsTCP = ipGlobalProperties.GetActiveTcpListeners();
+            //返回本地计算机上的所有UDP监听程序            
+            IPEndPoint[] ipsUDP = ipGlobalProperties.GetActiveUdpListeners();
+            //返回本地计算机上的ipv4/ipv6传输控制协议(TCP)连接的信息。            
+            TcpConnectionInformation[] tcpConnInfoArray = ipGlobalProperties.GetActiveTcpConnections();
+
+            IList allPorts = new ArrayList();
+            foreach (IPEndPoint ep in ipsTCP)
+            {
+                allPorts.Add(ep.Port);
+            }
+            foreach (IPEndPoint ep in ipsUDP)
+            {
+                allPorts.Add(ep.Port);
+            }
+            foreach (TcpConnectionInformation conn in tcpConnInfoArray)
+            {
+                allPorts.Add(conn.LocalEndPoint.Port);
+            }
+            return allPorts;
+        }
+
         [SupportedOSPlatform("windows")]
         public void Sign(string? name, string? email, string? password)
         {            
-            // EdgeDriverService cd = EdgeDriverService.CreateDefaultService();
             IWebDriver wd = new EdgeDriver();
 
+            StartProxyServer();
+            SetProxyPort(GetFreePort());
+            exit = false;
             wd.Navigate().GoToUrl("http://kq.neusoft.com/");
             IWindow window = wd.Manage().Window;
             window.Maximize();
@@ -306,7 +361,7 @@ namespace SignSystem
             Thread.Sleep(3000);
 
             string js_sign = "javascript:document.attendanceForm.submit();";
-           // ((EdgeDriver)wd).ExecuteScript(js_sign, null);
+            //((EdgeDriver)wd).ExecuteScript(js_sign, null);
             Thread.Sleep(2000);
             //截屏
             var screenshot = ((EdgeDriver)wd).GetScreenshot();
@@ -326,6 +381,7 @@ namespace SignSystem
             ((EdgeDriver)wd).ExecuteScript(js_exit, null);
             Thread.Sleep(3000);
             wd.Quit();
+            StopProxyServer();
         }
 
 

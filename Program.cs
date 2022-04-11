@@ -23,7 +23,7 @@ SignUtils su = new();
 //Debug模式， 文件位置 D:\vs2022\Project\SignSystem\bin\Debug\net6.0\PersonInfo.json
 var listPerson = JsonMapper.ToObject<List<PersonInfo>>(File.ReadAllText("PersonInfo.json"));
 
-su.StartProxyServer();
+/*su.StartProxyServer();
 su.SetProxyPort(8888);
 
 var task = Task.Run(() =>
@@ -49,32 +49,10 @@ task = Task.Run(() =>
 task.Wait();
 Console.WriteLine("打卡完成");
 //取消代理。连续3次启动的话就失败。第二次代理服务器起不来。
-su.StopProxyServer();
+su.StopProxyServer();*/
 
-
-
-
-
-/*.ContinueWith((task1) =>
-{
-    su.StartProxyServer();
-    su.SetProxyPort();
-    su.Sign();
-});*/
-
-Console.ReadKey();
-
-//signProxy.StopProxyServer();
-
-
-//等待任务完成
-/*task.GetAwaiter().OnCompleted(() =>
-{
-    Console.WriteLine("打卡完成");
-   // signProxy.StopProxyServer();
-});*/
 //定时器相关代码
-/*System.Timers.Timer timer = new System.Timers.Timer();
+System.Timers.Timer timer = new System.Timers.Timer();
 timer.Enabled = true;
 timer.Interval = 60000;//执行间隔时间,单位为毫秒;此时时间间隔为1分钟  
 timer.Start();
@@ -88,27 +66,18 @@ void SignFilter(object? source, ElapsedEventArgs e)
     if (DateTime.Now.Hour == 7 && DateTime.Now.Minute == 00)  //如果当前时间是20点15分
     {
         Thread.Sleep(random.Next(min, max) * 60 * 1000);
-        var task = Task.Run(() =>
-        {
-            su.StartProxyServer();
-            su.SetProxyPort();
-            su.Sign(listPerson[0].name, listPerson[0].email, listPerson[0].password);
-        });
-        task.Wait();
+        su.Sign(listPerson[0].name, listPerson[0].email, listPerson[0].password);
         Console.WriteLine("早上打卡结束");
     }
-    else if (DateTime.Now.Hour == 19 && DateTime.Now.Minute == 00)
+    else if (DateTime.Now.Hour == 16 && DateTime.Now.Minute == 30)
     {
         Console.WriteLine("晚上打卡: 当前进程是:" + Process.GetCurrentProcess() + ", 线程号是:" + Thread.CurrentThread.ManagedThreadId);
 
-        Thread.Sleep(random.Next(min, max) * 60 * 1000);
-        var task = Task.Run(() =>
-        {
-            su.StartProxyServer();
-            su.SetProxyPort();
-            su.Sign(listPerson[0].name, listPerson[0].email, listPerson[0].password);
-        });
-        task.Wait();
+       // Thread.Sleep(random.Next(min, max) * 60 * 1000);
+        su.Sign(listPerson[0].name, listPerson[0].email, listPerson[0].password);
+        su.Sign(listPerson[0].name, listPerson[0].email, listPerson[0].password);
+        su.Sign(listPerson[0].name, listPerson[0].email, listPerson[0].password);
+        su.Sign(listPerson[0].name, listPerson[0].email, listPerson[0].password);
         Console.WriteLine("晚上打卡结束");
     }
     else
@@ -116,4 +85,4 @@ void SignFilter(object? source, ElapsedEventArgs e)
         Console.WriteLine("else: 当前进程是:" + Process.GetCurrentProcess() + ", 线程号是:" + Thread.CurrentThread.ManagedThreadId);
         Console.WriteLine("当前时间是" + DateTime.Now);
     }
-}*/
+}
