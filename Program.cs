@@ -18,29 +18,20 @@ int min = 0;
 int max = 120;
 
 SignProxy signProxy = new();
-Task task = new(() =>
-{
-    signProxy.StartProxyServer();
-    signProxy.SetProxyPort(9999);
-    SignUtils.Sign();
-    signProxy.StopProxyServer();
 
-});
-task.Start();
-task.Wait();
+signProxy.StartProxyServer();
+signProxy.SetProxyPort(8888);
+SignUtils.Sign();
+signProxy.StopProxyServer();
 
-Thread.Sleep(5000);
+await Task.Delay(10000);
 
-task = new(() =>
-{
-    signProxy.StartProxyServer();
-    signProxy.SetProxyPort(8888);
-    SignUtils.Sign();
-    signProxy.StopProxyServer();
+signProxy.StartProxyServer();
+signProxy.SetProxyPort(9999);
+SignUtils.Sign();
+signProxy.StopProxyServer();
 
-});
-task.Start();
-task.Wait();
+
 
 Console.ReadKey();
 /*//定时器相关代码

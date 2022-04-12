@@ -19,8 +19,11 @@ namespace SignSystem
     {
         public static void Sign()
         {
-            IWebDriver wd = new OpenQA.Selenium.Edge.EdgeDriver();
-            wd.Quit();
+            /*            IWebDriver wd = new OpenQA.Selenium.Edge.EdgeDriver();
+                        wd.Quit();*/
+            Console.WriteLine("Doing a request");
+            Console.WriteLine(HttpClient.DefaultProxy.GetProxy(new Uri("http://localhost")));
+
         }
     }
 }
